@@ -9,6 +9,7 @@ import ListItemText from '@mui/material/ListItemText';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import WarehouseIcon from '@mui/icons-material/Warehouse';
 import GroupsIcon from '@mui/icons-material/Groups';
+import Link from 'next/link';
 
 export default function MenuApp() {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -43,18 +44,22 @@ export default function MenuApp() {
           'aria-labelledby': 'basic-button',
         }}
       >
-        <MenuItem>
-          <ListItemIcon>
-            <GroupsIcon fontSize="small" className='text-black' />
-          </ListItemIcon>
-          <ListItemText>Pegawai</ListItemText>
-        </MenuItem>
-        <MenuItem>
-          <ListItemIcon>
-            <WarehouseIcon fontSize="small" className='text-black' />
-          </ListItemIcon>
-          <ListItemText>Gudang</ListItemText>
-        </MenuItem>
+        <Link href="/dashboard/employee">
+          <MenuItem>
+            <ListItemIcon>
+              <GroupsIcon fontSize="small" className='text-black' />
+            </ListItemIcon>
+            <ListItemText>Pegawai</ListItemText>
+          </MenuItem>
+        </Link>
+        <Link href="/dashboard/storage">
+          <MenuItem>
+            <ListItemIcon>
+              <WarehouseIcon fontSize="small" className='text-black' />
+            </ListItemIcon>
+            <ListItemText>Gudang</ListItemText>
+          </MenuItem>
+        </Link>
       </Menu>
     </div>
   );
