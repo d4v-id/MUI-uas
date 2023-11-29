@@ -25,20 +25,27 @@ import Fade from '@mui/material/Fade';
 import Backdrop from '@mui/material/Backdrop';
 import Typography from '@mui/material/Typography';
 import LinearProgress from '@mui/material/LinearProgress';
-import { red } from '@mui/material/colors';
-import { fetchEmployees } from '@/app/components/api';
+import TextField from '@mui/material/TextField'
+import MenuItem from '@mui/material/MenuItem';
+import InputLabel from '@mui/material/InputLabel';
+import FormControl from '@mui/material/FormControl';
+import Select, { SelectChangeEvent } from '@mui/material/Select';
+import { addEmployee, fetchEmployees } from '@/app/components/api';
+
 
 interface Employee {
   id: number;
   name: string;
   email: string;
+  gender: string;
+  handphone: string;
   job: string;
+  address: string;
 }
-
-
 interface EmployeePageProps {
   employees: Employee[] | undefined;
 }
+
 
 const style = {
   position: 'absolute' as 'absolute',
@@ -55,9 +62,22 @@ const style = {
 
 export default function EmployeePage({ employees }: EmployeePageProps) {
 
-  const [open, setOpen] = React.useState(false);
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    gender: '', 
+    handphone: '', 
+    job: '',
+    address: '',
+  });
+
+  const [openAdd, setOpenAdd] = React.useState(false);
+  const handleOpenAdd = () => setOpenAdd(true);
+  const handleCloseAdd = () => setOpenAdd(false);
+
+  const [openDelete, setOpenDelete] = React.useState(false);
+  const handleOpenDelete = () => setOpenDelete(true);
+  const handleCloseDelete = () => setOpenDelete(false);
 
   const [data, setData] = useState<Employee[] | undefined>(employees);
 
@@ -87,6 +107,39 @@ export default function EmployeePage({ employees }: EmployeePageProps) {
 
   console.log(data);
 
+
+
+  // const [gender, setGender] = React.useState('');
+  const handleChangeGender = (event: SelectChangeEvent<string>) => {
+    setFormData({
+      ...formData,
+      gender: event.target.value as string,
+    });
+  };
+
+  const handleChangeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleChangeJob = (event: SelectChangeEvent<string>) => {
+    setFormData({
+      ...formData,
+      job: event.target.value as string,
+    });
+  };
+
+  const handleSubmit = async () => {
+    const response = await addEmployee(formData);
+    console.log(response);
+    handleCloseAdd();
+  };
+
+
+
+
   return (
     <div className='bg-gradient-to-r from-green-400 to-blue-500 h-screen  '>
       <div className='flex bg-white w-full'>
@@ -99,14 +152,124 @@ export default function EmployeePage({ employees }: EmployeePageProps) {
       </div>
       <div className='p-8'>
         <div className='flex w-full mb-4'>
-          <Button variant="contained" className='bg-blue-500 shadow' startIcon={<AddIcon />}>
+          <Button onClick={handleOpenAdd} variant="contained" className='bg-blue-500 shadow' startIcon={<AddIcon />}>
             Tambah
           </Button>
+          <Modal
+            aria-labelledby="transition-modal-title"
+            aria-describedby="transition-modal-description"
+            open={openAdd}
+            onClose={handleCloseAdd}
+            closeAfterTransition
+            slots={{ backdrop: Backdrop }}
+            slotProps={{
+              backdrop: {
+                timeout: 500,
+              },
+            }}
+          >
+            <Fade in={openAdd}>
+              <Box sx={style}>
+                <div className='flex items-center'>
+                  <Typography id="transition-modal-title" variant="h6" component="h2" className='text-black justify-center mb-4'>
+                    Tambah Data Pegawai
+                  </Typography>
+                </div>
+
+                {/* Form */}
+                <div className='flex w-full mb-4'>
+                  <TextField
+                    id="outlined-basic"
+                    name="name"
+                    label="Nama"
+                    variant="outlined"
+                    sx={{ mr: 2 }}
+                    className='w-full'
+                    value={formData.name}
+                    onChange={handleChangeInput}
+                  />
+                  <TextField
+                    id="outlined-basic"
+                    name="email"
+                    label="Email"
+                    variant="outlined"
+                    className='w-full'
+                    value={formData.email}
+                    onChange={handleChangeInput}
+                  />
+                </div>
+                <div className='flex w-full mb-4'>
+                  <FormControl fullWidth sx={{ mr: 2 }}>
+                    <InputLabel id="demo-simple-select-label">Jenis Kelamin</InputLabel>
+                    <Select
+                      labelId="demo-simple-select-label"
+                      id="demo-simple-select"
+                      name="gender"
+                      value={formData.gender}
+                      label="Jenis Kelamin"
+                      onChange={handleChangeGender}
+                    >
+                      <MenuItem value="Laki-laki">Laki-laki</MenuItem>
+                      <MenuItem value="Perempuan">Perempuan</MenuItem>
+                    </Select>
+                  </FormControl>
+                  <TextField
+                    id="outlined-basic"
+                    name="handphone"
+                    label="No.HP"
+                    variant="outlined"
+                    className='w-full'
+                    value={formData.handphone}
+                    onChange={handleChangeInput}
+                  />
+                </div>
+                <div className='flex w-full'>
+                  <TextField
+                    id="outlined-basic"
+                    name="address"
+                    label="Alamat"
+                    variant="outlined"
+                    className='w-full'
+                    value={formData.address}
+                    onChange={handleChangeInput}
+                  />
+                </div>
+                <div className='mt-4 flex w-full'>
+                  <FormControl fullWidth>
+                    <InputLabel id="demo-simple-select-label">Jenis Pekerjaan</InputLabel>
+                    <Select
+                      labelId="demo-simple-select-label"
+                      id="demo-simple-select"
+                      name="job"
+                      value={formData.job}
+                      label="Jenis Pekerjaan"
+                      onChange={handleChangeJob}
+                    >
+                      <MenuItem value="LOGISTIK">Logistik</MenuItem>
+                      <MenuItem value="DISTRIBUSI">Distribusi</MenuItem>
+                      <MenuItem value="MARKETING">Marketing</MenuItem>
+                      <MenuItem value="STAFF">Staff</MenuItem>
+                    </Select>
+                  </FormControl>
+                </div>
+                <div className='flex justify-center'>
+                  <Stack direction="row" spacing={1} justifyContent="flex-end" sx={{ mt: 2 }}>
+                    <Button onClick={handleCloseAdd} variant="outlined" style={{ color: 'gray', borderColor: 'gray' }}>Batal</Button>
+                    <Button variant="contained" color='success' className='bg-green-600'>Submit</Button>
+                  </Stack>
+                </div>
+              </Box>
+            </Fade>
+          </Modal>
         </div>
+
+
+
+        {/* TABEL */}
         <TableContainer component={Paper}>
           <Table sx={{ minWidth: 650 }} aria-label="simple table">
             <TableHead>
-              <TableRow style={{ color: 'gray'}} className='text-lg uppercase bg-gray-200'>
+              <TableRow style={{ color: 'gray' }} className='text-lg uppercase bg-gray-200'>
                 <TableCell className='font-semibold tracking-wider'>Name</TableCell>
                 <TableCell className='font-semibold tracking-wider'>Email</TableCell>
                 <TableCell className='font-semibold tracking-wider'>Job</TableCell>
@@ -137,15 +300,15 @@ export default function EmployeePage({ employees }: EmployeePageProps) {
                         </IconButton>
                       </Tooltip>
                       <Tooltip title="Hapus">
-                        <IconButton onClick={handleOpen} aria-label="delete" color='error' >
+                        <IconButton onClick={handleOpenDelete} aria-label="delete" color='error' >
                           <DeleteIcon />
                         </IconButton>
                       </Tooltip>
                       <Modal
                         aria-labelledby="transition-modal-title"
                         aria-describedby="transition-modal-description"
-                        open={open}
-                        onClose={handleClose}
+                        open={openDelete}
+                        onClose={handleCloseDelete}
                         closeAfterTransition
                         slots={{ backdrop: Backdrop }}
                         slotProps={{
@@ -154,7 +317,7 @@ export default function EmployeePage({ employees }: EmployeePageProps) {
                           },
                         }}
                       >
-                        <Fade in={open}>
+                        <Fade in={openDelete}>
                           <Box sx={style}>
                             <div className='flex items-center'>
                               <WarningAmberIcon color='error' fontSize='large' />
@@ -166,7 +329,7 @@ export default function EmployeePage({ employees }: EmployeePageProps) {
                               Menghapus data pegawai dengan nama `<span className='font-bold '>{row.name}</span>`
                             </Typography>
                             <Stack direction="row" spacing={1} justifyContent="flex-end" sx={{ mt: 2 }}>
-                              <Button onClick={handleClose} variant="outlined" style={{ color: 'gray', borderColor: 'gray' }}>Batal</Button>
+                              <Button onClick={handleCloseDelete} variant="outlined" style={{ color: 'gray', borderColor: 'gray' }}>Batal</Button>
                               <Button variant="contained" color='error' className='bg-red-600'>Hapus</Button>
                             </Stack>
                           </Box>
