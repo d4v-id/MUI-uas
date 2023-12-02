@@ -80,6 +80,7 @@ export default function EmployeePage({ employees }: EmployeePageProps) {
   const handleCloseDelete = () => setOpenDelete(false);
 
   const [data, setData] = useState<Employee[] | undefined>(employees);
+  const [fetchDataTrigger, setFetchDataTrigger] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -90,12 +91,15 @@ export default function EmployeePage({ employees }: EmployeePageProps) {
         console.error('Error fetching data:', error);
       }
     };
-
-    if (!data) {
+    // if (!data) {
+    //   fetchData();
+    // }
+    if (fetchDataTrigger) {
       fetchData();
+      setFetchDataTrigger(false);
     }
 
-  }, [data]);
+  }, [fetchDataTrigger]);
 
   if (!data || !Array.isArray(data)) {
     return <div>
@@ -132,10 +136,17 @@ export default function EmployeePage({ employees }: EmployeePageProps) {
   };
 
   const handleSubmit = async () => {
-    const response = await addEmployee(formData);
-    console.log(response);
-    handleCloseAdd();
+    try {
+      const response = await addEmployee(formData);
+      console.log(response);
+      setFetchDataTrigger(true);
+      handleCloseAdd();
+    } 
+    catch (error) {
+      console.error('Handle Submit Error:', error);
+    }
   };
+  
 
 
 
@@ -255,7 +266,7 @@ export default function EmployeePage({ employees }: EmployeePageProps) {
                 <div className='flex justify-center'>
                   <Stack direction="row" spacing={1} justifyContent="flex-end" sx={{ mt: 2 }}>
                     <Button onClick={handleCloseAdd} variant="outlined" style={{ color: 'gray', borderColor: 'gray' }}>Batal</Button>
-                    <Button variant="contained" color='success' className='bg-green-600'>Submit</Button>
+                    <Button onClick={handleSubmit} variant="contained" color='success' className='bg-green-600'>Submit</Button>
                   </Stack>
                 </div>
               </Box>

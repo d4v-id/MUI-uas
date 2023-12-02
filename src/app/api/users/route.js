@@ -3,23 +3,28 @@ import { PrismaClient } from '@prisma/client';
 
 export async function GET() {
   const prisma = new PrismaClient();
-  const users = await prisma.user.findMany();
-  console.log(users);
-  return Response.json({ users })
-  // return <EmployeePage employees={users}></EmployeePage>
+  try {
+    const users = await prisma.user.findMany();
+    console.log(users);
+    return Response.json({ users });
+    // return <EmployeePage employees={users}></EmployeePage>
+  } catch (error) {
+    console.error('Get Employees:', error);
+    return Response.json({ success: false, error: 'Failed to fetch employees' });
+  }
 }
 
 export async function POST(request) {
   const prisma = new PrismaClient();
-  const body = JSON.parse(request.body);
-  
+  const body = await request.json();
+
   try {
     const newUser = await prisma.user.create({
       data: {
         name: body.name,
         email: body.email,
         gender: body.gender,
-        handpnone: body.handpnone,
+        handphone: body.handphone,
         job: body.job,
         address: body.address,
       },
@@ -33,3 +38,4 @@ export async function POST(request) {
     await prisma.$disconnect();
   }
 }
+

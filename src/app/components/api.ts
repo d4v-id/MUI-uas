@@ -19,14 +19,26 @@ interface EmployeeData {
 
 // POST
 export async function addEmployee(employeeData: EmployeeData) {
-    const response = await fetch('http://localhost:3000/api/users', {
+    try {
+      const res = await fetch('http://localhost:3000/api/users', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(employeeData),
-    });
+      });
+  
+      if (!res.ok) {
+        const errorMessage = await res.text();
+        console.error(`HTTP error! Status: ${res.status}, Message: ${errorMessage}`);
+        throw new Error(`Failed to add employee: ${errorMessage}`);
+      }
+  
+      const data = await res.json();
+      return data;
 
-    const data = await response.json();
-    return data;
-}
+    } catch (error) {
+      console.error('Add Employee:', error);
+      throw new Error('Failed to add employee');
+    }
+  }
