@@ -3,12 +3,12 @@ import { AppBar } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import MenuApp from '@/app/components/MenuApp';
 import IconButton from '@mui/material/IconButton';
-import MenuIcon from '@mui/icons-material/Menu';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
 import InfoIcon from '@mui/icons-material/Info';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import PermContactCalendarIcon from '@mui/icons-material/PermContactCalendar';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -29,8 +29,9 @@ import TextField from '@mui/material/TextField'
 import MenuItem from '@mui/material/MenuItem';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
+import Divider from '@mui/material/Divider';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
-import { addEmployee, fetchEmployees } from '@/app/components/api';
+import { addEmployee, deleteEmployee, fetchEmployeeById, fetchEmployees } from '@/app/components/api';
 
 
 interface Employee {
@@ -65,8 +66,8 @@ export default function EmployeePage({ employees }: EmployeePageProps) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    gender: '', 
-    handphone: '', 
+    gender: '',
+    handphone: '',
     job: '',
     address: '',
   });
@@ -75,9 +76,47 @@ export default function EmployeePage({ employees }: EmployeePageProps) {
   const handleOpenAdd = () => setOpenAdd(true);
   const handleCloseAdd = () => setOpenAdd(false);
 
+  const [selectedEmployeeDetails, setSelectedEmployeeDetails] = React.useState<Employee | null>(null);
+  const [openDetail, setOpenDetail] = React.useState(false);
+  const handleOpenDetail = async (employee: Employee) => {
+    try {
+      const details = await fetchEmployeeById(employee.id);
+      setSelectedEmployeeDetails(details);
+      setOpenDetail(true);
+    } catch (error) {
+      console.error('Error fetching employee details:', error);
+    }
+  };
+  const handleCloseDetail = () => {
+    setSelectedEmployeeDetails(null);
+    setOpenDetail(false);
+  };
+
+
+
+  const [selectedEmployee, setSelectedEmployee] = React.useState<Employee | null>(null);
   const [openDelete, setOpenDelete] = React.useState(false);
-  const handleOpenDelete = () => setOpenDelete(true);
-  const handleCloseDelete = () => setOpenDelete(false);
+  const handleOpenDelete = (employee: Employee) => {
+    setSelectedEmployee(employee);
+    setOpenDelete(true);
+  };
+  const handleCloseDelete = () => {
+    setSelectedEmployee(null);
+    setOpenDelete(false);
+  };
+  const handleDeleteEmployee = async () => {
+    try {
+      if (selectedEmployee) {
+        await deleteEmployee(selectedEmployee.id);
+      }
+      setFetchDataTrigger(true);
+      handleCloseDelete();
+    } catch (error) {
+      console.error('Error deleting employee:', error);
+    }
+  };
+
+
 
   const [data, setData] = useState<Employee[] | undefined>(employees);
   const [fetchDataTrigger, setFetchDataTrigger] = useState<boolean>(true);
@@ -98,8 +137,8 @@ export default function EmployeePage({ employees }: EmployeePageProps) {
       fetchData();
       setFetchDataTrigger(false);
     }
-
   }, [fetchDataTrigger]);
+
 
   if (!data || !Array.isArray(data)) {
     return <div>
@@ -108,7 +147,6 @@ export default function EmployeePage({ employees }: EmployeePageProps) {
       </Box>
     </div>;
   }
-
   console.log(data);
 
 
@@ -141,12 +179,12 @@ export default function EmployeePage({ employees }: EmployeePageProps) {
       console.log(response);
       setFetchDataTrigger(true);
       handleCloseAdd();
-    } 
+    }
     catch (error) {
       console.error('Handle Submit Error:', error);
     }
   };
-  
+
 
 
 
@@ -276,6 +314,9 @@ export default function EmployeePage({ employees }: EmployeePageProps) {
 
 
 
+
+
+
         {/* TABEL */}
         <TableContainer component={Paper}>
           <Table sx={{ minWidth: 650 }} aria-label="simple table">
@@ -301,17 +342,93 @@ export default function EmployeePage({ employees }: EmployeePageProps) {
                   <TableCell align='right' style={{ padding: '6px', textAlign: 'right' }}>
                     <Stack direction="row" spacing={1}>
                       <Tooltip title="Detail">
-                        <IconButton aria-label="info" color="primary">
+                        <IconButton onClick={() => handleOpenDetail(row)} aria-label="info" color="primary">
                           <InfoIcon />
                         </IconButton>
                       </Tooltip>
+                      <Modal
+                        aria-labelledby="transition-modal-title"
+                        aria-describedby="transition-modal-description"
+                        open={openDetail}
+                        onClose={handleCloseDetail}
+                        closeAfterTransition
+                        slots={{ backdrop: Backdrop }}
+                        slotProps={{
+                          backdrop: {
+                            timeout: 500,
+                          },
+                        }}
+                      >
+                        <Fade in={openDetail}>
+                          <Box sx={style}>
+                            <div className='flex items-center'>
+                              <PermContactCalendarIcon color='primary' fontSize='large' />
+                              <Typography id="transition-modal-title" sx={{ ml: 2 }} variant="h5" component="h2" className='text-black'>
+                                Detail Pegawai
+                              </Typography>
+                            </div>
+                            <Divider className='my-4' />
+                            {selectedEmployeeDetails && (
+                              <>
+                                <div className="grid grid-cols-2 gap-4 text-black">
+                                  <div className="mb-2">
+                                    <label className="font-semibold">Nama:</label>
+                                    <div className='flex'>
+                                      {selectedEmployeeDetails.name}
+                                    </div>
+                                  </div>
+                                  <div className="mb-2">
+                                    <label className="font-semibold">Email:</label>
+                                    <div className='flex'>
+                                      {selectedEmployeeDetails.email}
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4 text-black">
+                                  <div className="mb-2">
+                                    <label className="font-semibold">Jenis Kelamin:</label>
+                                    <div className='flex'>
+                                      {selectedEmployeeDetails.gender}
+                                    </div>
+                                  </div>
+                                  <div className="mb-2">
+                                    <label className="font-semibold">No.HP:</label>
+                                    <div className='flex'>
+                                      {selectedEmployeeDetails.handphone}
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4 text-black">
+                                  <div className="mb-2">
+                                    <label className="font-semibold">Divisi/Bagian:</label>
+                                    <div className='flex'>
+                                      {selectedEmployeeDetails.job}
+                                    </div>
+                                  </div>
+                                  <div className="mb-2">
+                                    <label className="font-semibold">Alamat:</label>
+                                    <div className='flex'>
+                                      {selectedEmployeeDetails.address}
+                                    </div>
+                                  </div>
+                                </div>
+                              </>
+                            )}
+                            <Divider className='my-4' />
+                            <div className='justify-center items-center flex '>
+                              <Button onClick={handleCloseDetail} variant="outlined" style={{ color: 'gray', borderColor: 'gray' }}>Tutup</Button>
+                            </div>
+
+                          </Box>
+                        </Fade>
+                      </Modal>
                       <Tooltip title="Edit">
                         <IconButton aria-label="edit" color="success">
                           <EditIcon />
                         </IconButton>
                       </Tooltip>
                       <Tooltip title="Hapus">
-                        <IconButton onClick={handleOpenDelete} aria-label="delete" color='error' >
+                        <IconButton onClick={() => handleOpenDelete(row)} aria-label="delete" color='error' >
                           <DeleteIcon />
                         </IconButton>
                       </Tooltip>
@@ -336,13 +453,17 @@ export default function EmployeePage({ employees }: EmployeePageProps) {
                                 Apakah anda yakin?
                               </Typography>
                             </div>
-                            <Typography id="transition-modal-description" sx={{ mt: 1 }} className='text-gray-700'>
-                              Menghapus data pegawai dengan nama `<span className='font-bold '>{row.name}</span>`
-                            </Typography>
-                            <Stack direction="row" spacing={1} justifyContent="flex-end" sx={{ mt: 2 }}>
-                              <Button onClick={handleCloseDelete} variant="outlined" style={{ color: 'gray', borderColor: 'gray' }}>Batal</Button>
-                              <Button variant="contained" color='error' className='bg-red-600'>Hapus</Button>
-                            </Stack>
+                            {selectedEmployee && (
+                              <>
+                                <Typography id="transition-modal-description" sx={{ mt: 1 }} className='text-gray-700'>
+                                  Menghapus data pegawai dengan nama `<span className='font-bold '>{selectedEmployee.name}</span>`
+                                </Typography>
+                                <Stack direction="row" spacing={1} justifyContent="flex-end" sx={{ mt: 2 }}>
+                                  <Button onClick={handleCloseDelete} variant="outlined" style={{ color: 'gray', borderColor: 'gray' }}>Batal</Button>
+                                  <Button onClick={handleDeleteEmployee} variant="contained" color='error' className='bg-red-600'>Hapus</Button>
+                                </Stack>
+                              </>
+                            )}
                           </Box>
                         </Fade>
                       </Modal>
