@@ -21,6 +21,29 @@ export async function GET(request, { params }) {
 }
 
 
+
+export async function PUT(request, { params }) {
+  const prisma = new PrismaClient();
+  const employeeId = params.employeeId;
+  const body = await request.json(); 
+  try {
+    const updatedEmployee = await prisma.user.update({
+      where: {
+        id: parseInt(employeeId, 10),
+      },
+      data: body,
+    });
+
+    return Response.json({ success: true, updatedEmployee });
+  } catch (error) {
+    console.error('Update Employee:', error);
+    return Response.json({ success: false, error: 'Failed to update employee' });
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+
 export async function DELETE(request, { params }) {
   const prisma = new PrismaClient();
   // const body = await request.json();

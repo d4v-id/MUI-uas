@@ -1,16 +1,46 @@
 import EmployeePage from '@/app/dashboard/employee/page';
 import { PrismaClient } from '@prisma/client';
 
-export async function GET() {
+// export async function GET() {
+//   const prisma = new PrismaClient();
+//   try {
+//     const users = await prisma.user.findMany();
+//     console.log(users);
+//     return Response.json({ users });
+//     // return <EmployeePage employees={users}></EmployeePage>
+//   } catch (error) {
+//     console.error('Get Employees:', error);
+//     return Response.json({ success: false, error: 'Failed to fetch employees' });
+//   }
+// }
+
+export async function GET(request) {
   const prisma = new PrismaClient();
+
   try {
-    const users = await prisma.user.findMany();
+    const searchParams = request.nextUrl.searchParams
+    const query = searchParams.get('name')
+    let users;
+
+    if (query) {
+      users = await prisma.user.findMany({
+        where: {
+          name: {
+            contains: query,
+          },
+        },
+      });
+    } else {
+      users = await prisma.user.findMany();
+    }
     console.log(users);
     return Response.json({ users });
-    // return <EmployeePage employees={users}></EmployeePage>
+    
   } catch (error) {
     console.error('Get Employees:', error);
     return Response.json({ success: false, error: 'Failed to fetch employees' });
+  } finally {
+    await prisma.$disconnect();
   }
 }
 

@@ -1,5 +1,5 @@
 "use client"
-import { AppBar } from '@mui/material'
+import { AppBar, InputAdornment } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import MenuApp from '@/app/components/MenuApp';
 import IconButton from '@mui/material/IconButton';
@@ -31,7 +31,8 @@ import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
 import Divider from '@mui/material/Divider';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
-import { addEmployee, deleteEmployee, fetchEmployeeById, fetchEmployees } from '@/app/components/api';
+import SearchIcon from '@mui/icons-material/Search';
+import { addEmployee, deleteEmployee, fetchEmployeeById, fetchEmployeesSearch, updateEmployee } from '@/app/components/api';
 
 
 interface Employee {
@@ -76,6 +77,8 @@ export default function EmployeePage({ employees }: EmployeePageProps) {
   const handleOpenAdd = () => setOpenAdd(true);
   const handleCloseAdd = () => setOpenAdd(false);
 
+
+  // DETAIL
   const [selectedEmployeeDetails, setSelectedEmployeeDetails] = React.useState<Employee | null>(null);
   const [openDetail, setOpenDetail] = React.useState(false);
   const handleOpenDetail = async (employee: Employee) => {
@@ -94,6 +97,52 @@ export default function EmployeePage({ employees }: EmployeePageProps) {
 
 
 
+  // EDIT
+  const [openEdit, setOpenEdit] = React.useState(false);
+  const handleOpenEdit = async (employee: Employee) => {
+    try {
+      const details = await fetchEmployeeById(employee.id);
+      setFormData({
+        name: details.name,
+        email: details.email,
+        gender: details.gender,
+        handphone: details.handphone,
+        job: details.job,
+        address: details.address,
+      });
+      setSelectedEmployeeDetails(details);
+      setOpenEdit(true);
+    } catch (error) {
+      console.error('Error fetching employee details:', error);
+    }
+  };
+  const handleCloseEdit = () => {
+    setSelectedEmployeeDetails(null);
+    setOpenEdit(false);
+  };
+  const handleSubmitEdit = async () => {
+    try {
+      if (selectedEmployeeDetails) {
+        await updateEmployee(selectedEmployeeDetails.id, formData);
+        handleCloseEdit();
+        setFormData({
+          name: '',
+          email: '',
+          gender: '',
+          handphone: '',
+          job: '',
+          address: '',
+        });
+      }
+      setFetchDataTrigger(true);
+    } catch (error) {
+      console.error('Error updating employee:', error);
+    }
+  };
+
+
+
+  // DELETE
   const [selectedEmployee, setSelectedEmployee] = React.useState<Employee | null>(null);
   const [openDelete, setOpenDelete] = React.useState(false);
   const handleOpenDelete = (employee: Employee) => {
@@ -118,13 +167,17 @@ export default function EmployeePage({ employees }: EmployeePageProps) {
 
 
 
+
+  const [searchQuery, setSearchQuery] = useState<string>('');
+
   const [data, setData] = useState<Employee[] | undefined>(employees);
   const [fetchDataTrigger, setFetchDataTrigger] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const employeesData = await fetchEmployees();
+        const employeesData = await fetchEmployeesSearch(searchQuery)
+          // : await fetchEmployees();
         setData(employeesData);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -148,7 +201,6 @@ export default function EmployeePage({ employees }: EmployeePageProps) {
     </div>;
   }
   console.log(data);
-
 
 
   // const [gender, setGender] = React.useState('');
@@ -200,10 +252,32 @@ export default function EmployeePage({ employees }: EmployeePageProps) {
         </div>
       </div>
       <div className='p-8'>
-        <div className='flex w-full mb-4'>
+        <div className='flex w-full justify-between mb-4'>
+
+
           <Button onClick={handleOpenAdd} variant="contained" className='bg-blue-500 shadow' startIcon={<AddIcon />}>
             Tambah
           </Button>
+          <TextField
+            label="Search"
+            size='small'
+            className='bg-white text-black rounded'
+            variant="filled"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    edge="end"
+                    onClick={() => setFetchDataTrigger(true)}
+                  >
+                    <SearchIcon />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
           <Modal
             aria-labelledby="transition-modal-title"
             aria-describedby="transition-modal-description"
@@ -341,6 +415,7 @@ export default function EmployeePage({ employees }: EmployeePageProps) {
                   <TableCell style={{ padding: '6px' }} className='uppercase'>{row.job}</TableCell>
                   <TableCell align='right' style={{ padding: '6px', textAlign: 'right' }}>
                     <Stack direction="row" spacing={1}>
+                      {/* Button */}
                       <Tooltip title="Detail">
                         <IconButton onClick={() => handleOpenDetail(row)} aria-label="info" color="primary">
                           <InfoIcon />
@@ -422,11 +497,123 @@ export default function EmployeePage({ employees }: EmployeePageProps) {
                           </Box>
                         </Fade>
                       </Modal>
+
+                      {/* Button */}
                       <Tooltip title="Edit">
-                        <IconButton aria-label="edit" color="success">
+                        <IconButton onClick={() => handleOpenEdit(row)} aria-label="edit" color="success">
                           <EditIcon />
                         </IconButton>
                       </Tooltip>
+                      <Modal
+                        aria-labelledby="transition-modal-title"
+                        aria-describedby="transition-modal-description"
+                        open={openEdit}
+                        onClose={handleCloseEdit}
+                        closeAfterTransition
+                        slots={{ backdrop: Backdrop }}
+                        slotProps={{
+                          backdrop: {
+                            timeout: 500,
+                          },
+                        }}
+                      >
+                        <Fade in={openEdit}>
+                          <Box sx={style}>
+                            <div className='flex items-center mb-4'>
+                              <PermContactCalendarIcon color='primary' fontSize='large' />
+                              <Typography id="transition-modal-title" sx={{ ml: 2 }} variant="h5" component="h2" className='text-black'>
+                                Edit Pegawai
+                              </Typography>
+                            </div>
+
+                            {/* Form */}
+                            <div className='flex w-full mb-4'>
+                              <TextField
+                                id="outlined-basic"
+                                name="name"
+                                label="Nama"
+                                variant="outlined"
+                                sx={{ mr: 2 }}
+                                className='w-full'
+                                value={formData.name}
+                                onChange={handleChangeInput}
+                              />
+                              <TextField
+                                id="outlined-basic"
+                                name="email"
+                                label="Email"
+                                variant="outlined"
+                                className='w-full'
+                                value={formData.email}
+                                onChange={handleChangeInput}
+                              />
+                            </div>
+                            <div className='flex w-full mb-4'>
+                              <FormControl fullWidth sx={{ mr: 2 }}>
+                                <InputLabel id="demo-simple-select-label">Jenis Kelamin</InputLabel>
+                                <Select
+                                  labelId="demo-simple-select-label"
+                                  id="demo-simple-select"
+                                  name="gender"
+                                  value={formData.gender}
+                                  label="Jenis Kelamin"
+                                  onChange={handleChangeGender}
+                                >
+                                  <MenuItem value="Laki-laki">Laki-laki</MenuItem>
+                                  <MenuItem value="Perempuan">Perempuan</MenuItem>
+                                </Select>
+                              </FormControl>
+                              <TextField
+                                id="outlined-basic"
+                                name="handphone"
+                                label="No.HP"
+                                variant="outlined"
+                                className='w-full'
+                                value={formData.handphone}
+                                onChange={handleChangeInput}
+                              />
+                            </div>
+                            <div className='flex w-full'>
+                              <TextField
+                                id="outlined-basic"
+                                name="address"
+                                label="Alamat"
+                                variant="outlined"
+                                className='w-full'
+                                value={formData.address}
+                                onChange={handleChangeInput}
+                              />
+                            </div>
+                            <div className='mt-4 flex w-full'>
+                              <FormControl fullWidth>
+                                <InputLabel id="demo-simple-select-label">Jenis Pekerjaan</InputLabel>
+                                <Select
+                                  labelId="demo-simple-select-label"
+                                  id="demo-simple-select"
+                                  name="job"
+                                  value={formData.job}
+                                  label="Jenis Pekerjaan"
+                                  onChange={handleChangeJob}
+                                >
+                                  <MenuItem value="LOGISTIK">Logistik</MenuItem>
+                                  <MenuItem value="DISTRIBUSI">Distribusi</MenuItem>
+                                  <MenuItem value="MARKETING">Marketing</MenuItem>
+                                  <MenuItem value="STAFF">Staff</MenuItem>
+                                </Select>
+                              </FormControl>
+                            </div>
+                            <div className='flex justify-center'>
+                              <Stack direction="row" spacing={1} justifyContent="flex-end" sx={{ mt: 2 }}>
+                                <Button onClick={handleCloseEdit} variant="outlined" style={{ color: 'gray', borderColor: 'gray' }}>Batal</Button>
+                                <Button onClick={handleSubmitEdit} variant="contained" color='success' className='bg-green-600'>Submit</Button>
+                              </Stack>
+                            </div>
+                          </Box>
+                        </Fade>
+                      </Modal>
+
+
+                      {/* Button */}
                       <Tooltip title="Hapus">
                         <IconButton onClick={() => handleOpenDelete(row)} aria-label="delete" color='error' >
                           <DeleteIcon />
