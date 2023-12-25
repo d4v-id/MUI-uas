@@ -20,11 +20,13 @@ model User {
   address String?
 }
 
-model Post {
-  id        Int     @id @default(autoincrement())
-  title     String
-  content   String?
-  published Boolean @default(false)
+model Product {
+  id    Int     @id @default(autoincrement())
+  name  String
+  class String?
+  brand String?
+  qty String?
+  price String?
   // author    User    @relation(fields: [authorId], references: [id])
-  authorId  Int
+  // authorId  Int
 }
