@@ -119,6 +119,14 @@ export default function EmployeePage({ employees }: EmployeePageProps) {
   const handleCloseEdit = () => {
     setSelectedEmployeeDetails(null);
     setOpenEdit(false);
+    setFormData({
+      name: '',
+      email: '',
+      gender: '',
+      handphone: '',
+      job: '',
+      address: '',
+    });
   };
   const handleSubmitEdit = async () => {
     try {
