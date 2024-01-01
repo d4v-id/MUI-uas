@@ -58,7 +58,7 @@ const style = {
   bgcolor: 'background.paper',
   // border: '2px solid #000',
   borderRadius: 4,
-  boxShadow: 24,
+  boxShadow: 0,
   p: 3,
 };
 
@@ -239,6 +239,14 @@ export default function EmployeePage({ employees }: EmployeePageProps) {
       console.log(response);
       setFetchDataTrigger(true);
       handleCloseAdd();
+      setFormData({
+        name: '',
+        email: '',
+        gender: '',
+        handphone: '',
+        job: '',
+        address: '',
+      });
     }
     catch (error) {
       console.error('Handle Submit Error:', error);
