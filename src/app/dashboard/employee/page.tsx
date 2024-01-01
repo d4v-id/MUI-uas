@@ -58,7 +58,7 @@ const style = {
   bgcolor: 'background.paper',
   // border: '2px solid #000',
   borderRadius: 4,
-  boxShadow: 0,
+  boxShadow: 20,
   p: 3,
 };
 
@@ -529,7 +529,7 @@ export default function EmployeePage({ employees }: EmployeePageProps) {
                         slots={{ backdrop: Backdrop }}
                         slotProps={{
                           backdrop: {
-                            timeout: 500,
+                            timeout: 400,
                           },
                         }}
                       >
